@@ -19,6 +19,13 @@
 
 **Pitfall Warnings:** Pitfalls 1, 2, 4, 5, 6, 8, 9, 11, 13
 
+**Plans:** 3 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — WPF project setup with transparent window and click-through
+- [ ] 01-02-PLAN.md — System tray icon with context menu and Explorer restart resilience
+- [ ] 01-03-PLAN.md — Taskbar-aware positioning, fullscreen detection, auto-hide support
+
 ---
 
 ## Phase 2: Pet Life — Animation, States & Interaction
