@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 import random
 
 from config import SCALE_FACTOR, PET_WIDTH, PET_HEIGHT, PET_CENTER_X, PET_CENTER_Y
-from messages import MESSAGE_REGISTRY
+from messages import MESSAGE_REGISTRY, ANIMATION_REGISTRY
 
 
 class PetCharacter(tk.Canvas):
@@ -28,15 +28,9 @@ class PetCharacter(tk.Canvas):
         """Load all sprite frames from assets"""
         pet_type = self.state.pet_type
         
-        # Base animations
-        sprite_configs = {
-            'idle': 2,
-            'typing': 3,
-            'working': 2,
-            'error': 3
-        }
-        
-        for anim, count in sprite_configs.items():
+        # Load from ANIMATION_REGISTRY
+        for anim, config in ANIMATION_REGISTRY.items():
+            count = config.get('frames', 1)
             self.frames[anim] = []
             for i in range(count):
                 self.frames[anim].append(self._load_sprite(pet_type, f'{anim}_{i}'))

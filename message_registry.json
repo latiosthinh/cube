@@ -1,4 +1,18 @@
 {
+  "animations": {
+    "idle": {
+      "frames": 2
+    },
+    "typing": {
+      "frames": 3
+    },
+    "working": {
+      "frames": 2
+    },
+    "error": {
+      "frames": 3
+    }
+  },
   "messages": {
     "msg_pet_01": {
       "text": "Hehe!",
