@@ -92,12 +92,16 @@ class PetCharacter(tk.Canvas):
         self.itemconfig(self.sprite, image=frames[self.frame_index])
         self.current_photo = frames[self.frame_index]
         
+        # Get timing from ANIMATION_REGISTRY
+        anim_config = ANIMATION_REGISTRY.get(self.animation_state, {})
+        
         if self.animation_state == 'idle' and len(frames) > 1:
             self.frame_index = 1 - self.frame_index
-            return random.randint(2000, 5000)
+            delay_min = anim_config.get('display_time', 3500)
+            return random.randint(delay_min - 1500, delay_min + 1500)
         elif self.animation_state in ['working', 'typing', 'error'] and len(frames) > 1:
             self.frame_index = (self.frame_index + 1) % len(frames)
-            return 200
+            return anim_config.get('display_time', 200)
         else:
             self.frame_index = (self.frame_index + 1) % len(frames)
             return 400
