@@ -271,11 +271,7 @@ class PetWindow:
         self.pet.set_animation('typing')
         
         sentences = ["Hehe!", "That tickles!", "Again!", "Wheee!", "More pets!", "Love it!"]
-        self.show_bubble(random.choice(sentences))
-        
-        # Wait 1 second after bubble disappears, then back to idle
-        bubble_duration = 3000
-        self.click_timer = self.root.after(bubble_duration + 1000, lambda: self.pet.set_animation('idle'))
+        self.show_bubble(random.choice(sentences), on_finish=lambda: self.root.after(1000, lambda: self.pet.set_animation('idle')))
         
     def on_right_click(self, event):
         """Feed the pet - triggers working mode for 5 seconds"""
@@ -289,10 +285,7 @@ class PetWindow:
         
         self.state.hunger = max(0, self.state.hunger - 25)
         self.pet.set_animation('working')
-        self.show_bubble("YUM!")
-        
-        # Working mode for 5 seconds, then back to idle
-        self.click_timer = self.root.after(5000, lambda: self.pet.set_animation('idle'))
+        self.show_bubble("1 second bro!", on_finish=lambda: self.root.after(1000, lambda: self.pet.set_animation('idle')))
         
     def on_mouse_enter(self, event):
         """Mouse entered pet area"""
@@ -308,7 +301,7 @@ class PetWindow:
         print("Pet saved. Goodbye!")
         self.root.destroy()
         
-    def show_bubble(self, text, duration=2000):
+    def show_bubble(self, text, duration=2000, on_finish=None):
         """Show speech bubble with typing effect"""
         if self.bubble:
             try:
@@ -333,6 +326,7 @@ class PetWindow:
         self.typing_text = text
         self.typing_index = 0
         self.bubble_frame = bubble_frame
+        self.on_finish_callback = on_finish
         
         self.bubble_label = tk.Label(
             bubble_frame,
@@ -376,12 +370,11 @@ class PetWindow:
             bubble_y = self.y - label_height - 10
             self.bubble.geometry(f"+{bubble_x}+{bubble_y}")
             
-            char_delay = max(50, min(150, total_duration // len(self.typing_text) // 2))
+            char_delay = 80
             self.typing_timer = self.root.after(char_delay, lambda: self._type_next_char(total_duration))
         else:
-            display_duration = total_duration - (self.typing_index * 100)
-            if display_duration > 0:
-                self.typing_timer = self.root.after(display_duration, lambda: self._destroy_bubble())
+            # Typing complete - wait a bit then destroy
+            self.typing_timer = self.root.after(1500, lambda: self._destroy_bubble())
         
     def _destroy_bubble(self):
         """Safely destroy bubble"""
@@ -401,6 +394,11 @@ class PetWindow:
                 pass
         self.typing_text = ""
         self.typing_index = 0
+        
+        # Call finish callback if set
+        if self.on_finish_callback:
+            self.on_finish_callback()
+            self.on_finish_callback = None
 
     def keep_on_top(self):
         """Keep window always on top"""
