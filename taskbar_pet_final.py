@@ -138,6 +138,9 @@ class PetCharacter(tk.Canvas):
             self.frame_index = 1 - self.frame_index
             print(f"[ANIM] Idle frame: {self.frame_index}")
             return random.randint(2000, 5000)
+        elif self.animation_state in ['working', 'typing', 'error'] and len(frames) > 1:
+            self.frame_index = (self.frame_index + 1) % len(frames)
+            return 200
         else:
             self.frame_index = (self.frame_index + 1) % len(frames)
             return 400
@@ -195,6 +198,11 @@ class PetWindow:
         self.typing_index = 0
         self.typing_timer = None
         
+        # Spam detection
+        self.click_count = 0
+        self.click_timer = None
+        self.last_click_time = 0
+        
         # Load custom font from file
         self.font_path = os.path.join(os.path.dirname(__file__), 'assets', 'font', 'CuteFont-Regular.ttf')
         self.font_size = 16
@@ -230,29 +238,61 @@ class PetWindow:
         self.root.geometry(f"{self.pet_width}x{self.pet_height}+{self.x}+{self.y}")
         
     def on_left_click(self, event):
-        """Pet the pet"""
-        print("Left click detected!")
+        """Pet the pet - triggers typing mode with sentences"""
+        import time
+        current_time = time.time()
+        
+        # Spam detection: 3+ clicks within 2 seconds
+        if current_time - self.last_click_time < 2.0:
+            self.click_count += 1
+        else:
+            self.click_count = 1
+        self.last_click_time = current_time
+        
+        if self.click_count >= 3:
+            # Spam clicked - show error
+            if self.click_timer:
+                self.root.after_cancel(self.click_timer)
+            self.pet.set_animation('error')
+            self.show_bubble("STOP IT!")
+            self.click_timer = self.root.after(4000, lambda: self.pet.set_animation('idle'))
+            self.click_count = 0
+            return
+        
+        if self.click_timer:
+            self.root.after_cancel(self.click_timer)
+        
         if self.state.is_sleeping:
             self.show_bubble("Zzz...")
             return
-            
+        
         self.state.happiness = min(100, self.state.happiness + 8)
         self.state.health = min(100, self.state.health + 2)
-        self.pet.set_animation('working')
-        self.show_bubble("<3")
-        self.root.after(1000, lambda: self.pet.set_animation('idle'))
+        self.pet.set_animation('typing')
+        
+        sentences = ["Hehe!", "That tickles!", "Again!", "Wheee!", "More pets!", "Love it!"]
+        self.show_bubble(random.choice(sentences))
+        
+        # Wait 1 second after bubble disappears, then back to idle
+        bubble_duration = 3000
+        self.click_timer = self.root.after(bubble_duration + 1000, lambda: self.pet.set_animation('idle'))
         
     def on_right_click(self, event):
-        """Feed the pet"""
+        """Feed the pet - triggers working mode for 5 seconds"""
         print("Right click detected!")
         if self.state.is_sleeping:
             self.show_bubble("Zzz...")
             return
             
+        if self.click_timer:
+            self.root.after_cancel(self.click_timer)
+        
         self.state.hunger = max(0, self.state.hunger - 25)
-        self.pet.set_animation('typing')
+        self.pet.set_animation('working')
         self.show_bubble("YUM!")
-        self.root.after(2000, lambda: self.pet.set_animation('idle'))
+        
+        # Working mode for 5 seconds, then back to idle
+        self.click_timer = self.root.after(5000, lambda: self.pet.set_animation('idle'))
         
     def on_mouse_enter(self, event):
         """Mouse entered pet area"""
@@ -332,7 +372,7 @@ class PetWindow:
             label_width = self.bubble_label.winfo_reqwidth()
             label_height = self.bubble_label.winfo_reqheight()
             
-            bubble_x = self.x + (self.pet_width - label_width) // 2
+            bubble_x = self.x + (self.pet_width - label_width) // 2 + 30
             bubble_y = self.y - label_height - 10
             self.bubble.geometry(f"+{bubble_x}+{bubble_y}")
             
