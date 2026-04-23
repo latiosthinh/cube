@@ -270,10 +270,11 @@ class PetWindow:
         
         self.state.happiness = min(100, self.state.happiness + 8)
         self.state.health = min(100, self.state.health + 2)
+        # Enter typing mode, will return to idle when typing completes
         self.pet.set_animation('typing')
         
         sentences = ["Hehe!", "That tickles!", "Again!", "Wheee!", "More pets!", "Love it!"]
-        self.show_bubble(random.choice(sentences))
+        self.show_bubble(random.choice(sentences), on_typing_complete=lambda: self.pet.set_animation('idle'))
         
     def on_right_click(self, event):
         """Feed the pet - triggers working mode for 5 seconds"""
@@ -290,7 +291,7 @@ class PetWindow:
         self.state.hunger = max(0, self.state.hunger - 25)
         self.pet.set_animation('working')
         self.show_bubble("1 second bro!")
-        # Working mode for at least 5 seconds
+        # Working mode for 5 seconds, then back to idle
         self.click_timer = self.root.after(5000, lambda: self.pet.set_animation('idle'))
         
     def on_mouse_enter(self, event):
@@ -307,7 +308,7 @@ class PetWindow:
         print("Pet saved. Goodbye!")
         self.root.destroy()
         
-    def show_bubble(self, text, duration=2000):
+    def show_bubble(self, text, duration=2000, on_typing_complete=None):
         """Show speech bubble with typing effect using PIL for custom font"""
         if self.bubble:
             try:
@@ -332,6 +333,7 @@ class PetWindow:
         self.typing_text = text
         self.typing_index = 0
         self.bubble_frame = bubble_frame
+        self.on_typing_complete = on_typing_complete
         
         self.bubble_label = tk.Label(
             bubble_frame,
@@ -348,10 +350,8 @@ class PetWindow:
             from PIL import ImageFont
             self.pil_font = ImageFont.truetype(self.font_path, self.font_size)
             # Use PIL font metrics for sizing
-            print("[FONT] Loaded Cute Font via PIL")
         except Exception as e:
             self.pil_font = None
-            print(f"[FONT] Using Arial fallback")
         
         bubble_x = self.x + self.pet_width // 2
         bubble_y = self.y - 40
@@ -377,8 +377,10 @@ class PetWindow:
             char_delay = 80
             self.typing_timer = self.root.after(char_delay, lambda: self._type_next_char(total_duration))
         else:
-            # Typing complete - close bubble after 1.5s
-            # Note: animation state is managed by caller (5s for working, immediate for typing)
+            # Typing complete - call callback to return to idle, then close bubble
+            if self.on_typing_complete:
+                self.on_typing_complete()
+                self.on_typing_complete = None
             self.typing_timer = self.root.after(1500, lambda: self._destroy_bubble())
         
     def _destroy_bubble(self):
@@ -399,6 +401,7 @@ class PetWindow:
                 pass
         self.typing_text = ""
         self.typing_index = 0
+        self.on_typing_complete = None
 
     def keep_on_top(self):
         """Keep window always on top"""
