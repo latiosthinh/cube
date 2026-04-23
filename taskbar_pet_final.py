@@ -250,13 +250,14 @@ class PetWindow:
         self.last_click_time = current_time
         
         if self.click_count >= 3:
-            # Spam clicked - immediately show error mode, no message
+            # Spam clicked - immediately hide all messages and enter error mode
+            self._destroy_bubble()
             if self.click_timer:
                 self.root.after_cancel(self.click_timer)
             self.pet.set_animation('error')
             self.click_count = 0
-            # Error mode for 4 seconds
-            self.click_timer = self.root.after(4000, lambda: self.pet.set_animation('idle'))
+            # Error mode for 5 seconds
+            self.click_timer = self.root.after(5000, lambda: self.pet.set_animation('idle'))
             return
         
         # Cancel any pending timers for normal click
