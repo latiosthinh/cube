@@ -258,7 +258,7 @@ class PetWindow:
         
         # Load custom font from file
         self.font_path = os.path.join(os.path.dirname(__file__), 'assets', 'font', 'CuteFont-Regular.ttf')
-        self.font_size = 20
+        self.font_size = 24
         self.custom_font = None
         
         # Load font using PIL for rendering text to images
