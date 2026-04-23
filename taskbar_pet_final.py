@@ -403,18 +403,18 @@ class PetWindow:
         self.bubble.overrideredirect(True)
         self.bubble.wm_attributes("-topmost", True)
         
-        # Create frame for bubble background
-        bubble_frame = tk.Frame(self.bubble, bg='white', relief='solid', borderwidth=2)
-        bubble_frame.pack(fill='both', expand=True)
+        # Create canvas for rounded border
+        bubble_canvas = tk.Canvas(self.bubble, bg='white', highlightthickness=0)
+        bubble_canvas.pack(fill='both', expand=True)
         
         self.typing_text = text
         self.typing_index = 0
-        self.bubble_frame = bubble_frame
+        self.bubble_canvas = bubble_canvas
         self.on_typing_complete = on_typing_complete
         self.current_message_id = msg_id
         
         self.bubble_label = tk.Label(
-            bubble_frame,
+            bubble_canvas,
             text="",
             bg='white',
             fg='black',
@@ -435,7 +435,33 @@ class PetWindow:
         bubble_y = self.y - 40
         self.bubble.geometry(f"+{bubble_x}+{bubble_y}")
         
+        # Draw rounded border after layout
+        self.bubble.after(10, lambda: self._draw_rounded_border(bubble_canvas))
+        
         self._type_next_char(duration)
+    
+    def _draw_rounded_border(self, canvas):
+        """Draw rounded border around bubble"""
+        canvas.update_idletasks()
+        width = canvas.winfo_width()
+        height = canvas.winfo_height()
+        
+        if width < 10 or height < 10:
+            return
+        
+        radius = 10
+        canvas.delete("border")
+        
+        # Draw rounded rectangle border
+        canvas.create_arc(0, 0, radius*2, radius*2, start=90, extent=90, outline='#cccccc', width=2, tags="border")
+        canvas.create_arc(width-radius*2, 0, width, radius*2, start=0, extent=90, outline='#cccccc', width=2, tags="border")
+        canvas.create_arc(0, height-radius*2, radius*2, height, start=180, extent=90, outline='#cccccc', width=2, tags="border")
+        canvas.create_arc(width-radius*2, height-radius*2, width, height, start=270, extent=90, outline='#cccccc', width=2, tags="border")
+        
+        canvas.create_line(radius, 0, width-radius, 0, fill='#cccccc', width=2, tags="border")
+        canvas.create_line(width, radius, width, height-radius, fill='#cccccc', width=2, tags="border")
+        canvas.create_line(radius, height, width-radius, height, fill='#cccccc', width=2, tags="border")
+        canvas.create_line(0, radius, 0, height-radius, fill='#cccccc', width=2, tags="border")
     
     def _type_next_char(self, total_duration):
         """Type next character with typing effect"""
@@ -474,7 +500,7 @@ class PetWindow:
                 self.bubble.destroy()
                 self.bubble = None
                 self.bubble_label = None
-                self.bubble_frame = None
+                self.bubble_canvas = None
             except:
                 pass
         self.typing_text = ""
