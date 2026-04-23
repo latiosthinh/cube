@@ -1,0 +1,44 @@
+"""Configuration constants for Taskbar Pet"""
+
+# Files
+CONFIG_FILE = "pet_config.json"
+MESSAGE_REGISTRY_FILE = "message_registry.json"
+
+# Display
+DEFAULT_DISPLAY_TIME = 1500  # ms
+DEFAULT_FONT_SIZE = 24
+SCALE_FACTOR = 0.5
+
+# Pet dimensions
+PET_WIDTH = 105
+PET_HEIGHT = 78
+PET_CENTER_X = 52
+PET_CENTER_Y = 39
+
+# Window position
+TASKBAR_HEIGHT = 50
+PET_X = 10
+
+# Animation timings
+IDLE_FRAME_DELAY_MIN = 2000
+IDLE_FRAME_DELAY_MAX = 5000
+ANIMATION_FRAME_DELAY = 200
+TYPING_CHAR_DELAY = 80
+BUBBLE_PADDING = 12
+BUBBLE_BORDER_RADIUS = 10
+BUBBLE_BORDER_COLOR = '#cccccc'
+BUBBLE_BORDER_WIDTH = 2
+
+# Spam detection
+SPAM_CLICK_THRESHOLD = 3
+SPAM_CLICK_WINDOW = 2.0  # seconds
+SPAM_ERROR_DURATION = 5000  # ms
+
+# Auto systems
+AUTO_SAVE_INTERVAL = 30000  # ms
+IDLE_CHAT_DELAY_MIN = 15000  # ms
+IDLE_CHAT_DELAY_MAX = 30000  # ms
+KEEP_ON_TOP_INTERVAL = 500  # ms
+
+# Font
+FONT_PATH = "assets/font/CuteFont-Regular.ttf"
