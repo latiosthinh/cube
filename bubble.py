@@ -81,7 +81,7 @@ class BubbleSystem:
         self.current_message_id = msg_id
         self.bubble_photo = None
         
-        self.bubble_label = tk.Label(bubble_canvas, bg='white', padx=BUBBLE_PADDING, pady=BUBBLE_PADDING)
+        self.bubble_label = tk.Label(bubble_canvas, bg='white', padx=BUBBLE_PADDING, pady=4)
         self.bubble_label.pack()
         
         bubble_x = self.pet_x + self.pet_width // 2
@@ -101,9 +101,14 @@ class BubbleSystem:
                 text_width = bbox[2] - bbox[0]
                 text_height = bbox[3] - bbox[1]
                 
-                text_img = Image.new('RGBA', (text_width + 24, text_height + 16), (255, 255, 255, 0))
+                # Add extra padding for better vertical centering
+                padding_x = 12
+                padding_y = 6
+                
+                text_img = Image.new('RGBA', (text_width + padding_x * 2, text_height + padding_y * 2), (255, 255, 255, 0))
                 draw = ImageDraw.Draw(text_img)
-                draw.text((12, 8), current_text, font=self.pil_font, fill=(0, 0, 0, 255))
+                # Position text to account for baseline
+                draw.text((padding_x, 0), current_text, font=self.pil_font, fill=(0, 0, 0, 255))
                 
                 self.bubble_photo = ImageTk.PhotoImage(text_img)
                 self.bubble_label.configure(image=self.bubble_photo, text="")
