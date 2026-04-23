@@ -12,19 +12,20 @@ import tkinter.font as tkfont
 
 CONFIG_FILE = "pet_config.json"
 MESSAGE_REGISTRY_FILE = "message_registry.json"
+DEFAULT_DISPLAY_TIME = 1500  # Default display time in milliseconds
 
 def load_message_registry():
     """Load message registry from JSON file"""
     try:
         with open(MESSAGE_REGISTRY_FILE, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            return data.get('messages', {})
+            return data.get('messages', {}), data.get('defaults', {}).get('display_time', DEFAULT_DISPLAY_TIME)
     except Exception as e:
         print(f"Error loading message registry: {e}")
         # Fallback to empty registry
-        return {}
+        return {}, DEFAULT_DISPLAY_TIME
 
-MESSAGE_REGISTRY = load_message_registry()
+MESSAGE_REGISTRY, DEFAULT_DISPLAY_TIME = load_message_registry()
 
 class PetState:
     def __init__(self):
@@ -377,14 +378,24 @@ class PetWindow:
             self._show_bubble_impl(message_id_or_text, duration, on_typing_complete)
     
     def _show_bubble_impl(self, message_id_or_text, duration=2000, on_typing_complete=None):
-        """Internal implementation to show bubble"""
-        # Resolve message ID to text
+        """Internal implementation to show bubble
+        
+        Args:
+            message_id_or_text: Either a message ID from MESSAGE_REGISTRY or plain text
+            duration: How long to display bubble after typing completes (ms) - overridden by message config
+            on_typing_complete: Callback when typing finishes
+            delay: Delay before showing bubble (ms)
+        """
+        # Resolve message ID to text and config
         if message_id_or_text in MESSAGE_REGISTRY:
             msg_id = message_id_or_text
-            text = MESSAGE_REGISTRY[message_id_or_text]["text"]
+            msg_config = MESSAGE_REGISTRY[message_id_or_text]
+            text = msg_config["text"]
+            display_time = msg_config.get("display_time", DEFAULT_DISPLAY_TIME)
         else:
             msg_id = None
             text = message_id_or_text
+            display_time = duration
         
         if self.bubble:
             try:
@@ -412,6 +423,7 @@ class PetWindow:
         self.on_typing_complete = on_typing_complete
         self.current_message_id = msg_id
         self.bubble_image = None
+        self.display_time = display_time
         
         # Create label for bubble content (will use image for custom font)
         self.bubble_label = tk.Label(
@@ -422,6 +434,15 @@ class PetWindow:
         )
         self.bubble_label.pack()
         
+        # Load font using PIL for rendering text to images
+        try:
+            from PIL import ImageFont
+            self.pil_font = ImageFont.truetype(self.font_path, self.font_size)
+            print("[FONT] Loaded Cute Font via PIL")
+        except Exception as e:
+            print(f"[FONT] Could not load Cute Font: {e}, using Arial")
+            self.pil_font = None
+        
         bubble_x = self.x + self.pet_width // 2
         bubble_y = self.y - 40
         self.bubble.geometry(f"+{bubble_x}+{bubble_y}")
@@ -429,7 +450,7 @@ class PetWindow:
         # Draw rounded border after layout
         self.bubble.after(10, lambda: self._draw_rounded_border(bubble_canvas, 100, 50))
         
-        self._type_next_char(duration)
+        self._type_next_char(display_time)
     
     def _draw_rounded_border(self, canvas, width=None, height=None):
         """Draw rounded border around bubble"""
@@ -497,11 +518,11 @@ class PetWindow:
             char_delay = 80
             self.typing_timer = self.root.after(char_delay, lambda: self._type_next_char(total_duration))
         else:
-            # Typing complete - call callback to return to idle, then close bubble
+            # Typing complete - call callback to return to idle, then close bubble after display_time
             if self.on_typing_complete:
                 self.on_typing_complete()
                 self.on_typing_complete = None
-            self.typing_timer = self.root.after(1500, lambda: self._destroy_bubble())
+            self.typing_timer = self.root.after(self.display_time, lambda: self._destroy_bubble())
         
     def _destroy_bubble(self):
         """Safely destroy bubble"""
