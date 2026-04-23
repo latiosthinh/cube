@@ -1,0 +1,13 @@
+{
+  "hunger": 100,
+  "happiness": 100,
+  "energy": 0,
+  "health": 100,
+  "age": 375.30000000001684,
+  "is_sleeping": false,
+  "is_eating": false,
+  "last_fed": "2026-04-23T16:29:39.822390",
+  "pet_type": "cube",
+  "position_x": 0,
+  "name": ""
+}
