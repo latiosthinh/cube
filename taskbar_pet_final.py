@@ -8,6 +8,7 @@ import random
 import json
 import os
 from datetime import datetime
+import tkinter.font as tkfont
 
 CONFIG_FILE = "pet_config.json"
 
@@ -189,6 +190,24 @@ class PetWindow:
         
         # Speech bubble
         self.bubble = None
+        self.bubble_label = None
+        self.typing_text = ""
+        self.typing_index = 0
+        self.typing_timer = None
+        
+        # Load custom font from file
+        self.font_path = os.path.join(os.path.dirname(__file__), 'assets', 'font', 'CuteFont-Regular.ttf')
+        self.font_size = 16
+        self.custom_font = None
+        
+        # Try to load font using PIL ImageFont as fallback
+        try:
+            from PIL import ImageFont
+            self.pil_font = ImageFont.truetype(self.font_path, self.font_size)
+            print(f"[FONT] Loaded CuteFont via PIL")
+        except Exception as e:
+            print(f"[FONT] Could not load via PIL: {e}")
+            self.pil_font = None
         
         # Start loops
         self.animate()
@@ -250,43 +269,98 @@ class PetWindow:
         self.root.destroy()
         
     def show_bubble(self, text, duration=2000):
-        """Show speech bubble"""
+        """Show speech bubble with typing effect"""
         if self.bubble:
             try:
                 self.bubble.destroy()
             except:
                 pass
-                
+        
+        if self.typing_timer:
+            try:
+                self.root.after_cancel(self.typing_timer)
+            except:
+                pass
+        
         self.bubble = tk.Toplevel(self.root)
         self.bubble.overrideredirect(True)
         self.bubble.wm_attributes("-topmost", True)
-        self.bubble.wm_attributes("-transparentcolor", "black")
         
-        label = tk.Label(
-            self.bubble,
-            text=text,
-            bg="black",
-            fg="white",
-            font=("Arial", 14, "bold"),
-            padx=10,
-            pady=5
+        # Create frame for bubble background
+        bubble_frame = tk.Frame(self.bubble, bg='white', relief='solid', borderwidth=2)
+        bubble_frame.pack(fill='both', expand=True)
+        
+        self.typing_text = text
+        self.typing_index = 0
+        self.bubble_frame = bubble_frame
+        
+        self.bubble_label = tk.Label(
+            bubble_frame,
+            text="",
+            bg='white',
+            fg='black',
+            padx=12,
+            pady=8
         )
-        label.pack()
+        self.bubble_label.pack()
+        
+        # Try to load custom font
+        try:
+            from tkinter import font
+            font.addfont(self.font_path)
+            self.custom_font = tkfont.Font(family="Cute Font", size=self.font_size)
+            self.bubble_label.configure(font=self.custom_font)
+            print("[FONT] Loaded Cute Font via tkinter.font.addfont")
+        except Exception as e:
+            print(f"[FONT] Could not load Cute Font: {e}, using Arial")
+            self.bubble_label.configure(font=("Arial", self.font_size, "bold"))
         
         bubble_x = self.x + self.pet_width // 2
         bubble_y = self.y - 40
         self.bubble.geometry(f"+{bubble_x}+{bubble_y}")
         
-        self.root.after(duration, lambda: self._destroy_bubble())
+        self._type_next_char(duration)
+    
+    def _type_next_char(self, total_duration):
+        """Type next character with typing effect"""
+        if self.typing_index < len(self.typing_text):
+            current_text = self.typing_text[:self.typing_index + 1]
+            self.bubble_label.configure(text=current_text)
+            self.typing_index += 1
+            
+            self.bubble.update_idletasks()
+            label_width = self.bubble_label.winfo_reqwidth()
+            label_height = self.bubble_label.winfo_reqheight()
+            
+            bubble_x = self.x + (self.pet_width - label_width) // 2
+            bubble_y = self.y - label_height - 10
+            self.bubble.geometry(f"+{bubble_x}+{bubble_y}")
+            
+            char_delay = max(50, min(150, total_duration // len(self.typing_text) // 2))
+            self.typing_timer = self.root.after(char_delay, lambda: self._type_next_char(total_duration))
+        else:
+            display_duration = total_duration - (self.typing_index * 100)
+            if display_duration > 0:
+                self.typing_timer = self.root.after(display_duration, lambda: self._destroy_bubble())
         
     def _destroy_bubble(self):
         """Safely destroy bubble"""
+        if self.typing_timer:
+            try:
+                self.root.after_cancel(self.typing_timer)
+                self.typing_timer = None
+            except:
+                pass
         if self.bubble:
             try:
                 self.bubble.destroy()
                 self.bubble = None
+                self.bubble_label = None
+                self.bubble_frame = None
             except:
                 pass
+        self.typing_text = ""
+        self.typing_index = 0
 
     def keep_on_top(self):
         """Keep window always on top"""
