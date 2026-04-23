@@ -259,7 +259,7 @@ class PetWindow:
         
         # Load custom font from file
         self.font_path = os.path.join(os.path.dirname(__file__), 'assets', 'font', 'CuteFont-Regular.ttf')
-        self.font_size = 16
+        self.font_size = 20
         self.custom_font = None
         
         # Try to load font using PIL ImageFont as fallback
@@ -419,14 +419,15 @@ class PetWindow:
             bg='white',
             fg='black',
             padx=12,
-            pady=8
+            pady=8,
+            font=("Arial", 20, "bold")
         )
         self.bubble_label.pack()
         
         # Load custom font using PIL
         try:
             from PIL import ImageFont
-            self.pil_font = ImageFont.truetype(self.font_path, self.font_size)
+            self.pil_font = ImageFont.truetype(self.font_path, 20)
         except Exception as e:
             self.pil_font = None
         
