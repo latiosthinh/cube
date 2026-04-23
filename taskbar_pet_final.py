@@ -242,11 +242,6 @@ class PetWindow:
         import time
         current_time = time.time()
         
-        # Cancel any pending timers
-        if self.click_timer:
-            self.root.after_cancel(self.click_timer)
-            self.click_timer = None
-        
         # Spam detection: 3+ clicks within 2 seconds
         if current_time - self.last_click_time < 2.0:
             self.click_count += 1
@@ -255,12 +250,18 @@ class PetWindow:
         self.last_click_time = current_time
         
         if self.click_count >= 3:
-            # Spam clicked - show error
+            # Spam clicked - immediately show error mode, no message
+            if self.click_timer:
+                self.root.after_cancel(self.click_timer)
             self.pet.set_animation('error')
-            self.show_bubble("STOP IT!")
-            self.click_timer = self.root.after(4000, lambda: self.pet.set_animation('idle'))
             self.click_count = 0
+            # Error mode for 4 seconds
+            self.click_timer = self.root.after(4000, lambda: self.pet.set_animation('idle'))
             return
+        
+        # Cancel any pending timers for normal click
+        if self.click_timer:
+            self.root.after_cancel(self.click_timer)
         
         if self.state.is_sleeping:
             self.show_bubble("Zzz...")
@@ -268,22 +269,18 @@ class PetWindow:
         
         self.state.happiness = min(100, self.state.happiness + 8)
         self.state.health = min(100, self.state.health + 2)
-        # Set to typing mode immediately on click
-        
         self.pet.set_animation('typing')
         
         sentences = ["Hehe!", "That tickles!", "Again!", "Wheee!", "More pets!", "Love it!"]
-        # After typing finishes, animation already switched to idle in _type_next_char
         self.show_bubble(random.choice(sentences))
         
     def on_right_click(self, event):
-        """Feed the pet - triggers working mode"""
+        """Feed the pet - triggers working mode for 5 seconds"""
         print("Right click detected!")
         
         # Cancel any pending timers
         if self.click_timer:
             self.root.after_cancel(self.click_timer)
-            self.click_timer = None
         
         if self.state.is_sleeping:
             self.show_bubble("Zzz...")
@@ -291,8 +288,9 @@ class PetWindow:
         
         self.state.hunger = max(0, self.state.hunger - 25)
         self.pet.set_animation('working')
-        # Show message, animation switches to idle after typing completes
         self.show_bubble("1 second bro!")
+        # Working mode for at least 5 seconds
+        self.click_timer = self.root.after(5000, lambda: self.pet.set_animation('idle'))
         
     def on_mouse_enter(self, event):
         """Mouse entered pet area"""
@@ -379,8 +377,8 @@ class PetWindow:
             char_delay = 80
             self.typing_timer = self.root.after(char_delay, lambda: self._type_next_char(total_duration))
         else:
-            # Typing complete - switch to idle, then close bubble after 1.5s
-            self.pet.set_animation('idle')
+            # Typing complete - close bubble after 1.5s
+            # Note: animation state is managed by caller (5s for working, immediate for typing)
             self.typing_timer = self.root.after(1500, lambda: self._destroy_bubble())
         
     def _destroy_bubble(self):
