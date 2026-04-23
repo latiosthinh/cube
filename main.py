@@ -110,7 +110,12 @@ class PetWindow:
                 self.root.after_cancel(self.click_timer)
             self.pet.set_animation('error')
             self.click_count = 0
-            self.click_timer = self.root.after(SPAM_ERROR_DURATION, lambda: self.pet.set_animation('idle'))
+            
+            # Use total_time from error config
+            from messages import ANIMATION_REGISTRY
+            error_config = ANIMATION_REGISTRY.get('error', {})
+            duration = error_config.get('total_time', 5000)
+            self.click_timer = self.root.after(duration, lambda: self.pet.set_animation('idle'))
             return
         
         if self.click_timer:
@@ -129,7 +134,7 @@ class PetWindow:
         self.bubble.show_bubble(msg_id, on_typing_complete=lambda: self.pet.set_animation('idle'))
     
     def on_right_click(self, event):
-        """Handle right click - working mode for 5 seconds"""
+        """Handle right click - working mode"""
         if self.click_timer:
             self.root.after_cancel(self.click_timer)
         
@@ -140,7 +145,12 @@ class PetWindow:
         self.state.hunger = max(0, self.state.hunger - 25)
         self.pet.set_animation('working')
         self.bubble.show_bubble('msg_feed_01')
-        self.click_timer = self.root.after(5000, lambda: self.pet.set_animation('idle'))
+        
+        # Use total_time from animation config, default 5000ms
+        from messages import ANIMATION_REGISTRY
+        working_config = ANIMATION_REGISTRY.get('working', {})
+        duration = working_config.get('total_time', 5000)
+        self.click_timer = self.root.after(duration, lambda: self.pet.set_animation('idle'))
     
     def on_escape(self, event):
         """Exit on ESC"""

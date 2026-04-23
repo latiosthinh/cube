@@ -77,7 +77,12 @@ class PetCharacter(tk.Canvas):
         frames = self.frames[self.animation_state]
         if not frames:
             return 300
-            
+        
+        # Get timing from ANIMATION_REGISTRY
+        anim_config = ANIMATION_REGISTRY.get(self.animation_state, {})
+        frame_delay = anim_config.get('frame_delay', 200)
+        total_time = anim_config.get('total_time')
+        
         # Check for message-specific sprites
         if self.parent_window and hasattr(self.parent_window, 'current_message_id'):
             msg_id = self.parent_window.current_message_id
@@ -87,21 +92,18 @@ class PetCharacter(tk.Canvas):
                     self.frame_index = (self.frame_index + 1) % len(msg_frames)
                     self.itemconfig(self.sprite, image=msg_frames[self.frame_index])
                     self.current_photo = msg_frames[self.frame_index]
-                    return 200
+                    return frame_delay
         
         self.itemconfig(self.sprite, image=frames[self.frame_index])
         self.current_photo = frames[self.frame_index]
         
-        # Get timing from ANIMATION_REGISTRY
-        anim_config = ANIMATION_REGISTRY.get(self.animation_state, {})
-        
         if self.animation_state == 'idle' and len(frames) > 1:
             self.frame_index = 1 - self.frame_index
-            delay_min = anim_config.get('display_time', 3500)
-            return random.randint(delay_min - 1500, delay_min + 1500)
+            idle_delay = anim_config.get('frame_delay', 3500)
+            return random.randint(idle_delay - 1500, idle_delay + 1500)
         elif self.animation_state in ['working', 'typing', 'error'] and len(frames) > 1:
             self.frame_index = (self.frame_index + 1) % len(frames)
-            return anim_config.get('display_time', 200)
+            return frame_delay
         else:
             self.frame_index = (self.frame_index + 1) % len(frames)
             return 400

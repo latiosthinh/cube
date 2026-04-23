@@ -2,19 +2,23 @@
   "animations": {
     "idle": {
       "frames": 2,
-      "display_time": 3500
+      "frame_delay": 3500,
+      "total_time": null
     },
     "typing": {
       "frames": 3,
-      "display_time": 200
+      "frame_delay": 200,
+      "total_time": null
     },
     "working": {
       "frames": 2,
-      "display_time": 200
+      "frame_delay": 200,
+      "total_time": 5000
     },
     "error": {
       "frames": 3,
-      "display_time": 200
+      "frame_delay": 200,
+      "total_time": 5000
     }
   },
   "messages": {
@@ -71,8 +75,7 @@
   },
   "defaults": {
     "display_time": 1500,
-    "animation_frame_delay": 200,
-    "idle_frame_delay_min": 2000,
-    "idle_frame_delay_max": 5000
+    "frame_delay": 200,
+    "idle_frame_delay": 3500
   }
 }
