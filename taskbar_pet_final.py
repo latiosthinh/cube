@@ -70,6 +70,29 @@ class PetState:
                 print(f"Error loading save: {e}")
         return state
 
+# Message registry with unique IDs and corresponding sprite frames
+MESSAGE_REGISTRY = {
+    # Left click (typing mode) messages
+    'msg_pet_01': {"text": "Hehe!", "frames": 2},
+    'msg_pet_02': {"text": "That tickles!", "frames": 2},
+    'msg_pet_03': {"text": "Again!", "frames": 2},
+    'msg_pet_04': {"text": "Wheee!", "frames": 2},
+    'msg_pet_05': {"text": "More pets!", "frames": 2},
+    'msg_pet_06': {"text": "Love it!", "frames": 2},
+    
+    # Right click (working mode) messages
+    'msg_feed_01': {"text": "1 second bro!", "frames": 2},
+    
+    # Spam click (error mode) - no message
+    'msg_spam_01': {"text": "STOP IT!", "frames": 3},
+    
+    # Sleep messages
+    'msg_sleep_01': {"text": "Zzz...", "frames": 2},
+    
+    # Welcome message
+    'msg_welcome_01': {"text": "Hi! I'm Cube!", "frames": 2},
+}
+
 class PetCharacter(tk.Canvas):
     def __init__(self, parent, state, width=105, height=78):
         super().__init__(parent, width=width, height=height, bg='black', highlightthickness=0)
@@ -78,6 +101,7 @@ class PetCharacter(tk.Canvas):
         self.current_photo = None
         self.animation_state = 'idle'
         self.frame_index = 0
+        self.parent_window = parent
         
         self.load_all_sprites()
         self.set_animation('idle')
@@ -91,6 +115,7 @@ class PetCharacter(tk.Canvas):
             'error': []
         }
         
+        # Load base animation states
         sprite_configs = {
             'idle': 2,
             'typing': 3,
@@ -114,6 +139,22 @@ class PetCharacter(tk.Canvas):
                     photo = ImageTk.PhotoImage(img)
                     self.frames[anim].append(photo)
         
+        # Load message-specific sprite frames
+        self.message_frames = {}
+        for msg_id, config in MESSAGE_REGISTRY.items():
+            self.message_frames[msg_id] = []
+            for i in range(config["frames"]):
+                try:
+                    img = Image.open(f'assets/{pet_type}/{msg_id}_{i}.png')
+                    new_size = (int(img.width * scale_factor), int(img.height * scale_factor))
+                    img = img.resize(new_size, Image.Resampling.LANCZOS)
+                    photo = ImageTk.PhotoImage(img)
+                    self.message_frames[msg_id].append(photo)
+                except FileNotFoundError:
+                    # Use idle frames as fallback
+                    if self.frames['idle']:
+                        self.message_frames[msg_id].append(self.frames['idle'][0])
+        
         if self.frames['idle']:
             self.sprite = self.create_image(52, 39, image=self.frames['idle'][0])
             print(f"[PET] Loaded {len(self.frames['idle'])} idle frames")
@@ -133,6 +174,19 @@ class PetCharacter(tk.Canvas):
             
         self.itemconfig(self.sprite, image=frames[self.frame_index])
         self.current_photo = frames[self.frame_index]
+        
+        # Check if we have message-specific sprites to show
+        if self.parent_window and hasattr(self.parent_window, 'current_message_id') and self.parent_window.current_message_id:
+            msg_id = self.parent_window.current_message_id
+            if msg_id in self.parent_window.pet.message_frames and self.parent_window.pet.message_frames[msg_id]:
+                # Use message-specific sprite frames
+                msg_frames = self.parent_window.pet.message_frames[msg_id]
+                if self.animation_state in ['typing', 'working', 'error']:
+                    # Cycle through message frames
+                    self.frame_index = (self.frame_index + 1) % len(msg_frames)
+                    self.itemconfig(self.sprite, image=msg_frames[self.frame_index])
+                    self.current_photo = msg_frames[self.frame_index]
+                    return 200
         
         if self.animation_state == 'idle' and len(frames) > 1:
             self.frame_index = 1 - self.frame_index
@@ -170,14 +224,13 @@ class PetWindow:
         self.pet_height = 78
         
         self.x = 10
-        self.y = self.screen_height - self.pet_height - self.taskbar_height + 40
+        self.y = self.screen_height - self.pet_height - self.taskbar_height - 10
+        
+        self.root.geometry(f"{self.pet_width}x{self.pet_height}+{self.x}+{self.y}")
         
         # Create pet as Canvas (better event handling than Label)
         self.pet = PetCharacter(self.root, self.state)
         self.pet.pack()
-        
-        # Set position after packing
-        self.root.geometry(f"{self.pet_width}x{self.pet_height}+{self.x}+{self.y}")
         
         # Make canvas clickable
         self.pet.bind("<Button-1>", self.on_left_click)
@@ -197,6 +250,7 @@ class PetWindow:
         self.typing_text = ""
         self.typing_index = 0
         self.typing_timer = None
+        self.message_sprite_timer = None
         
         # Spam detection
         self.click_count = 0
@@ -224,8 +278,7 @@ class PetWindow:
         self.idle_chat_loop()
         self.keep_on_top()
         
-        pet_name = self.state.name if self.state.name else self.state.pet_type.title()
-        self.root.after(2000, lambda: self.show_bubble(f"Me name {pet_name}!"))
+        self.show_bubble('msg_welcome_01', delay=1000)
         
         # Force position after window is shown
         self.root.after(100, self._force_position)
@@ -238,7 +291,7 @@ class PetWindow:
         self.root.geometry(f"{self.pet_width}x{self.pet_height}+{self.x}+{self.y}")
         
     def on_left_click(self, event):
-        """Pet the pet - triggers typing mode with sentences"""
+        """Pet the pet - triggers typing mode with messages"""
         import time
         current_time = time.time()
         
@@ -265,7 +318,7 @@ class PetWindow:
             self.root.after_cancel(self.click_timer)
         
         if self.state.is_sleeping:
-            self.show_bubble("Zzz...")
+            self.show_bubble('msg_sleep_01')
             return
         
         self.state.happiness = min(100, self.state.happiness + 8)
@@ -273,8 +326,10 @@ class PetWindow:
         # Enter typing mode, will return to idle when typing completes
         self.pet.set_animation('typing')
         
-        sentences = ["Hehe!", "That tickles!", "Again!", "Wheee!", "More pets!", "Love it!"]
-        self.show_bubble(random.choice(sentences), on_typing_complete=lambda: self.pet.set_animation('idle'))
+        # Pick random message from pet messages
+        msg_ids = [k for k in MESSAGE_REGISTRY.keys() if k.startswith('msg_pet_')]
+        msg_id = random.choice(msg_ids)
+        self.show_bubble(msg_id, on_typing_complete=lambda: self.pet.set_animation('idle'))
         
     def on_right_click(self, event):
         """Feed the pet - triggers working mode for 5 seconds"""
@@ -285,12 +340,12 @@ class PetWindow:
             self.root.after_cancel(self.click_timer)
         
         if self.state.is_sleeping:
-            self.show_bubble("Zzz...")
+            self.show_bubble('msg_sleep_01')
             return
         
         self.state.hunger = max(0, self.state.hunger - 25)
         self.pet.set_animation('working')
-        self.show_bubble("1 second bro!")
+        self.show_bubble('msg_feed_01')
         # Working mode for 5 seconds, then back to idle
         self.click_timer = self.root.after(5000, lambda: self.pet.set_animation('idle'))
         
@@ -308,8 +363,30 @@ class PetWindow:
         print("Pet saved. Goodbye!")
         self.root.destroy()
         
-    def show_bubble(self, text, duration=2000, on_typing_complete=None):
-        """Show speech bubble with typing effect using PIL for custom font"""
+    def show_bubble(self, message_id_or_text, duration=2000, on_typing_complete=None, delay=0):
+        """Show speech bubble with typing effect using PIL for custom font
+        
+        Args:
+            message_id_or_text: Either a message ID from MESSAGE_REGISTRY or plain text
+            duration: How long to display bubble after typing completes (ms)
+            on_typing_complete: Callback when typing finishes
+            delay: Delay before showing bubble (ms)
+        """
+        if delay > 0:
+            self.root.after(delay, lambda: self._show_bubble_impl(message_id_or_text, duration, on_typing_complete))
+        else:
+            self._show_bubble_impl(message_id_or_text, duration, on_typing_complete)
+    
+    def _show_bubble_impl(self, message_id_or_text, duration=2000, on_typing_complete=None):
+        """Internal implementation to show bubble"""
+        # Resolve message ID to text
+        if message_id_or_text in MESSAGE_REGISTRY:
+            msg_id = message_id_or_text
+            text = MESSAGE_REGISTRY[message_id_or_text]["text"]
+        else:
+            msg_id = None
+            text = message_id_or_text
+        
         if self.bubble:
             try:
                 self.bubble.destroy()
@@ -334,6 +411,7 @@ class PetWindow:
         self.typing_index = 0
         self.bubble_frame = bubble_frame
         self.on_typing_complete = on_typing_complete
+        self.current_message_id = msg_id
         
         self.bubble_label = tk.Label(
             bubble_frame,
@@ -349,7 +427,6 @@ class PetWindow:
         try:
             from PIL import ImageFont
             self.pil_font = ImageFont.truetype(self.font_path, self.font_size)
-            # Use PIL font metrics for sizing
         except Exception as e:
             self.pil_font = None
         
@@ -402,6 +479,8 @@ class PetWindow:
         self.typing_text = ""
         self.typing_index = 0
         self.on_typing_complete = None
+        self.current_message_id = None
+        self.current_message_id = None
 
     def keep_on_top(self):
         """Keep window always on top"""
