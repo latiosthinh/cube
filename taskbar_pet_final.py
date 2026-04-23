@@ -307,7 +307,7 @@ class PetWindow:
         self.root.destroy()
         
     def show_bubble(self, text, duration=2000):
-        """Show speech bubble with typing effect"""
+        """Show speech bubble with typing effect using PIL for custom font"""
         if self.bubble:
             try:
                 self.bubble.destroy()
@@ -342,16 +342,15 @@ class PetWindow:
         )
         self.bubble_label.pack()
         
-        # Try to load custom font
+        # Load custom font using PIL
         try:
-            from tkinter import font
-            font.addfont(self.font_path)
-            self.custom_font = tkfont.Font(family="Cute Font", size=self.font_size)
-            self.bubble_label.configure(font=self.custom_font)
-            print("[FONT] Loaded Cute Font via tkinter.font.addfont")
+            from PIL import ImageFont
+            self.pil_font = ImageFont.truetype(self.font_path, self.font_size)
+            # Use PIL font metrics for sizing
+            print("[FONT] Loaded Cute Font via PIL")
         except Exception as e:
-            print(f"[FONT] Could not load Cute Font: {e}, using Arial")
-            self.bubble_label.configure(font=("Arial", self.font_size, "bold"))
+            self.pil_font = None
+            print(f"[FONT] Using Arial fallback")
         
         bubble_x = self.x + self.pet_width // 2
         bubble_y = self.y - 40
