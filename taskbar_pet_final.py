@@ -225,7 +225,7 @@ class PetWindow:
         self.keep_on_top()
         
         pet_name = self.state.name if self.state.name else self.state.pet_type.title()
-        self.root.after(1000, lambda: self.show_bubble(f"Hi! I'm {pet_name}!"))
+        self.root.after(2000, lambda: self.show_bubble(f"Me name {pet_name}!"))
         
         # Force position after window is shown
         self.root.after(100, self._force_position)
@@ -242,6 +242,11 @@ class PetWindow:
         import time
         current_time = time.time()
         
+        # Cancel any pending timers
+        if self.click_timer:
+            self.root.after_cancel(self.click_timer)
+            self.click_timer = None
+        
         # Spam detection: 3+ clicks within 2 seconds
         if current_time - self.last_click_time < 2.0:
             self.click_count += 1
@@ -251,16 +256,11 @@ class PetWindow:
         
         if self.click_count >= 3:
             # Spam clicked - show error
-            if self.click_timer:
-                self.root.after_cancel(self.click_timer)
             self.pet.set_animation('error')
             self.show_bubble("STOP IT!")
             self.click_timer = self.root.after(4000, lambda: self.pet.set_animation('idle'))
             self.click_count = 0
             return
-        
-        if self.click_timer:
-            self.root.after_cancel(self.click_timer)
         
         if self.state.is_sleeping:
             self.show_bubble("Zzz...")
@@ -268,24 +268,31 @@ class PetWindow:
         
         self.state.happiness = min(100, self.state.happiness + 8)
         self.state.health = min(100, self.state.health + 2)
+        # Set to typing mode immediately on click
+        
         self.pet.set_animation('typing')
         
         sentences = ["Hehe!", "That tickles!", "Again!", "Wheee!", "More pets!", "Love it!"]
-        self.show_bubble(random.choice(sentences), on_finish=lambda: self.root.after(1000, lambda: self.pet.set_animation('idle')))
+        # After typing finishes, animation already switched to idle in _type_next_char
+        self.show_bubble(random.choice(sentences))
         
     def on_right_click(self, event):
-        """Feed the pet - triggers working mode for 5 seconds"""
+        """Feed the pet - triggers working mode"""
         print("Right click detected!")
+        
+        # Cancel any pending timers
+        if self.click_timer:
+            self.root.after_cancel(self.click_timer)
+            self.click_timer = None
+        
         if self.state.is_sleeping:
             self.show_bubble("Zzz...")
             return
-            
-        if self.click_timer:
-            self.root.after_cancel(self.click_timer)
         
         self.state.hunger = max(0, self.state.hunger - 25)
         self.pet.set_animation('working')
-        self.show_bubble("1 second bro!", on_finish=lambda: self.root.after(1000, lambda: self.pet.set_animation('idle')))
+        # Show message, animation switches to idle after typing completes
+        self.show_bubble("1 second bro!")
         
     def on_mouse_enter(self, event):
         """Mouse entered pet area"""
@@ -301,7 +308,7 @@ class PetWindow:
         print("Pet saved. Goodbye!")
         self.root.destroy()
         
-    def show_bubble(self, text, duration=2000, on_finish=None):
+    def show_bubble(self, text, duration=2000):
         """Show speech bubble with typing effect"""
         if self.bubble:
             try:
@@ -326,7 +333,6 @@ class PetWindow:
         self.typing_text = text
         self.typing_index = 0
         self.bubble_frame = bubble_frame
-        self.on_finish_callback = on_finish
         
         self.bubble_label = tk.Label(
             bubble_frame,
@@ -373,7 +379,8 @@ class PetWindow:
             char_delay = 80
             self.typing_timer = self.root.after(char_delay, lambda: self._type_next_char(total_duration))
         else:
-            # Typing complete - wait a bit then destroy
+            # Typing complete - switch to idle, then close bubble after 1.5s
+            self.pet.set_animation('idle')
             self.typing_timer = self.root.after(1500, lambda: self._destroy_bubble())
         
     def _destroy_bubble(self):
@@ -394,11 +401,6 @@ class PetWindow:
                 pass
         self.typing_text = ""
         self.typing_index = 0
-        
-        # Call finish callback if set
-        if self.on_finish_callback:
-            self.on_finish_callback()
-            self.on_finish_callback = None
 
     def keep_on_top(self):
         """Keep window always on top"""
