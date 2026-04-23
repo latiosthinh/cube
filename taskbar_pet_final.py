@@ -11,6 +11,20 @@ from datetime import datetime
 import tkinter.font as tkfont
 
 CONFIG_FILE = "pet_config.json"
+MESSAGE_REGISTRY_FILE = "message_registry.json"
+
+def load_message_registry():
+    """Load message registry from JSON file"""
+    try:
+        with open(MESSAGE_REGISTRY_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return data.get('messages', {})
+    except Exception as e:
+        print(f"Error loading message registry: {e}")
+        # Fallback to empty registry
+        return {}
+
+MESSAGE_REGISTRY = load_message_registry()
 
 class PetState:
     def __init__(self):
@@ -69,29 +83,6 @@ class PetState:
             except Exception as e:
                 print(f"Error loading save: {e}")
         return state
-
-# Message registry with unique IDs and corresponding sprite frames
-MESSAGE_REGISTRY = {
-    # Left click (typing mode) messages
-    'msg_pet_01': {"text": "Hehe!", "frames": 2},
-    'msg_pet_02': {"text": "That tickles!", "frames": 2},
-    'msg_pet_03': {"text": "Again!", "frames": 2},
-    'msg_pet_04': {"text": "Wheee!", "frames": 2},
-    'msg_pet_05': {"text": "More pets!", "frames": 2},
-    'msg_pet_06': {"text": "Love it!", "frames": 2},
-    
-    # Right click (working mode) messages
-    'msg_feed_01': {"text": "1 second bro!", "frames": 2},
-    
-    # Spam click (error mode) - no message
-    'msg_spam_01': {"text": "STOP IT!", "frames": 3},
-    
-    # Sleep messages
-    'msg_sleep_01': {"text": "Zzz...", "frames": 2},
-    
-    # Welcome message
-    'msg_welcome_01': {"text": "Hi! I'm Cube!", "frames": 2},
-}
 
 class PetCharacter(tk.Canvas):
     def __init__(self, parent, state, width=105, height=78):
