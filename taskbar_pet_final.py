@@ -258,16 +258,16 @@ class PetWindow:
         
         # Load custom font from file
         self.font_path = os.path.join(os.path.dirname(__file__), 'assets', 'font', 'CuteFont-Regular.ttf')
-        self.font_size = 16
+        self.font_size = 20
         self.custom_font = None
         
-        # Try to load font using PIL ImageFont as fallback
+        # Load font using PIL for rendering text to images
         try:
             from PIL import ImageFont
             self.pil_font = ImageFont.truetype(self.font_path, self.font_size)
-            print(f"[FONT] Loaded CuteFont via PIL")
+            print("[FONT] Loaded Cute Font via PIL")
         except Exception as e:
-            print(f"[FONT] Could not load via PIL: {e}")
+            print(f"[FONT] Could not load Cute Font: {e}, using Arial")
             self.pil_font = None
         
         # Start loops
@@ -411,45 +411,32 @@ class PetWindow:
         self.bubble_canvas = bubble_canvas
         self.on_typing_complete = on_typing_complete
         self.current_message_id = msg_id
+        self.bubble_image = None
         
+        # Create label for bubble content (will use image for custom font)
         self.bubble_label = tk.Label(
             bubble_canvas,
-            text="",
             bg='white',
-            fg='black',
             padx=12,
             pady=8
         )
         self.bubble_label.pack()
-        
-        # Set font - try Cute Font first, fallback to Arial bold
-        try:
-            from PIL import ImageFont
-            test_font = ImageFont.truetype(self.font_path, 16)
-            # Font loaded successfully via PIL, but tkinter needs system font
-            # Try to use tkinter with Cute Font if installed
-            try:
-                custom_font = tkfont.Font(family="Cute Font", size=16, weight="bold")
-                self.bubble_label.configure(font=custom_font)
-            except:
-                self.bubble_label.configure(font=("Arial", 16, "bold"))
-        except:
-            self.bubble_label.configure(font=("Arial", 16, "bold"))
         
         bubble_x = self.x + self.pet_width // 2
         bubble_y = self.y - 40
         self.bubble.geometry(f"+{bubble_x}+{bubble_y}")
         
         # Draw rounded border after layout
-        self.bubble.after(10, lambda: self._draw_rounded_border(bubble_canvas))
+        self.bubble.after(10, lambda: self._draw_rounded_border(bubble_canvas, 100, 50))
         
         self._type_next_char(duration)
     
-    def _draw_rounded_border(self, canvas):
+    def _draw_rounded_border(self, canvas, width=None, height=None):
         """Draw rounded border around bubble"""
-        canvas.update_idletasks()
-        width = canvas.winfo_width()
-        height = canvas.winfo_height()
+        if width is None or height is None:
+            canvas.update_idletasks()
+            width = canvas.winfo_width()
+            height = canvas.winfo_height()
         
         if width < 10 or height < 10:
             return
@@ -469,15 +456,39 @@ class PetWindow:
         canvas.create_line(0, radius, 0, height-radius, fill='#cccccc', width=2, tags="border")
     
     def _type_next_char(self, total_duration):
-        """Type next character with typing effect"""
+        """Type next character with typing effect using PIL-rendered text"""
         if self.typing_index < len(self.typing_text):
             current_text = self.typing_text[:self.typing_index + 1]
-            self.bubble_label.configure(text=current_text)
+            
+            # Render text to image using PIL with custom font
+            if self.pil_font:
+                # Get text size
+                bbox = self.pil_font.getbbox(current_text)
+                text_width = bbox[2] - bbox[0]
+                text_height = bbox[3] - bbox[1]
+                
+                # Create image with text
+                text_img = Image.new('RGBA', (text_width + 24, text_height + 16), (255, 255, 255, 0))
+                from PIL import ImageDraw
+                draw = ImageDraw.Draw(text_img)
+                draw.text((12, 8), current_text, font=self.pil_font, fill=(0, 0, 0, 255))
+                
+                # Convert to PhotoImage
+                self.bubble_photo = ImageTk.PhotoImage(text_img)
+                self.bubble_label.configure(image=self.bubble_photo, text="")
+            else:
+                # Fallback to tkinter text
+                self.bubble_label.configure(text=current_text, image="")
+            
             self.typing_index += 1
             
+            # Update bubble size
             self.bubble.update_idletasks()
             label_width = self.bubble_label.winfo_reqwidth()
             label_height = self.bubble_label.winfo_reqheight()
+            
+            # Redraw rounded border
+            self._draw_rounded_border(self.bubble_canvas, label_width, label_height)
             
             bubble_x = self.x + (self.pet_width - label_width) // 2 + 30
             bubble_y = self.y - label_height - 10
