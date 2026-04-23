@@ -137,14 +137,22 @@ class PetCharacter(tk.Canvas):
             for i in range(config["frames"]):
                 try:
                     img = Image.open(f'assets/{pet_type}/{msg_id}_{i}.png')
-                    new_size = (int(img.width * scale_factor), int(img.height * scale_factor))
-                    img = img.resize(new_size, Image.Resampling.LANCZOS)
-                    photo = ImageTk.PhotoImage(img)
-                    self.message_frames[msg_id].append(photo)
-                except FileNotFoundError:
-                    # Use idle frames as fallback
-                    if self.frames['idle']:
+                    # Validate image has content
+                    if img.width > 0 and img.height > 0:
+                        new_size = (int(img.width * scale_factor), int(img.height * scale_factor))
+                        img = img.resize(new_size, Image.Resampling.LANCZOS)
+                        photo = ImageTk.PhotoImage(img)
+                        self.message_frames[msg_id].append(photo)
+                    else:
+                        raise ValueError("Invalid image dimensions")
+                except Exception:
+                    # Fall back to idle_0.png
+                    if self.frames['idle'] and len(self.frames['idle']) > 0:
                         self.message_frames[msg_id].append(self.frames['idle'][0])
+                    else:
+                        img = Image.new('RGBA', (105, 78), (0, 0, 0, 0))
+                        photo = ImageTk.PhotoImage(img)
+                        self.message_frames[msg_id].append(photo)
         
         if self.frames['idle']:
             self.sprite = self.create_image(52, 39, image=self.frames['idle'][0])
@@ -410,17 +418,23 @@ class PetWindow:
             bg='white',
             fg='black',
             padx=12,
-            pady=8,
-            font=("Arial", 16, "bold")
+            pady=8
         )
         self.bubble_label.pack()
         
-        # Load custom font using PIL
+        # Set font - try Cute Font first, fallback to Arial bold
         try:
             from PIL import ImageFont
-            self.pil_font = ImageFont.truetype(self.font_path, 16)
-        except Exception as e:
-            self.pil_font = None
+            test_font = ImageFont.truetype(self.font_path, 16)
+            # Font loaded successfully via PIL, but tkinter needs system font
+            # Try to use tkinter with Cute Font if installed
+            try:
+                custom_font = tkfont.Font(family="Cute Font", size=16, weight="bold")
+                self.bubble_label.configure(font=custom_font)
+            except:
+                self.bubble_label.configure(font=("Arial", 16, "bold"))
+        except:
+            self.bubble_label.configure(font=("Arial", 16, "bold"))
         
         bubble_x = self.x + self.pet_width // 2
         bubble_y = self.y - 40
