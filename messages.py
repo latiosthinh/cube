@@ -1,23 +1,22 @@
-"""Message and animation registry loader"""
+"""Unified registry loader for animations and messages"""
 
 import json
 from config import MESSAGE_REGISTRY_FILE, DEFAULT_DISPLAY_TIME
 
 
 def load_registry():
-    """Load message and animation registry from JSON file"""
+    """Load unified registry from JSON file"""
     try:
         with open(MESSAGE_REGISTRY_FILE, 'r', encoding='utf-8') as f:
             data = json.load(f)
             return (
-                data.get('messages', {}),
-                data.get('animations', {}),
-                data.get('defaults', {}).get('display_time', DEFAULT_DISPLAY_TIME)
+                data.get('registry', {}),
+                data.get('defaults', {})
             )
     except Exception as e:
         print(f"Error loading registry: {e}")
-        return {}, {}, DEFAULT_DISPLAY_TIME
+        return {}, {}
 
 
-# Global registries
-MESSAGE_REGISTRY, ANIMATION_REGISTRY, GLOBAL_DEFAULT_DISPLAY_TIME = load_registry()
+# Global registry and defaults
+REGISTRY, DEFAULTS = load_registry()

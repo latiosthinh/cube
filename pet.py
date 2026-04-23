@@ -5,7 +5,7 @@ from PIL import Image, ImageTk
 import random
 
 from config import SCALE_FACTOR, PET_WIDTH, PET_HEIGHT, PET_CENTER_X, PET_CENTER_Y
-from messages import MESSAGE_REGISTRY, ANIMATION_REGISTRY
+from messages import REGISTRY, DEFAULTS
 
 
 class PetCharacter(tk.Canvas):
@@ -15,7 +15,6 @@ class PetCharacter(tk.Canvas):
         super().__init__(parent, width=width, height=height, bg='black', highlightthickness=0)
         self.state = state
         self.frames = {}
-        self.message_frames = {}
         self.current_photo = None
         self.animation_state = 'idle'
         self.frame_index = 0
@@ -28,21 +27,14 @@ class PetCharacter(tk.Canvas):
         """Load all sprite frames from assets"""
         pet_type = self.state.pet_type
         
-        # Load from ANIMATION_REGISTRY
-        for anim, config in ANIMATION_REGISTRY.items():
+        # Load all from unified REGISTRY
+        for entry_id, config in REGISTRY.items():
             count = config.get('frames', 1)
-            self.frames[anim] = []
+            self.frames[entry_id] = []
             for i in range(count):
-                self.frames[anim].append(self._load_sprite(pet_type, f'{anim}_{i}'))
+                self.frames[entry_id].append(self._load_sprite(pet_type, f'{entry_id}_{i}', fallback_to_idle=True))
         
-        # Message-specific sprites
-        for msg_id, config in MESSAGE_REGISTRY.items():
-            self.message_frames[msg_id] = []
-            for i in range(config["frames"]):
-                sprite = self._load_sprite(pet_type, f'{msg_id}_{i}', fallback_to_idle=True)
-                self.message_frames[msg_id].append(sprite)
-        
-        if self.frames['idle']:
+        if 'idle' in self.frames and self.frames['idle']:
             self.sprite = self.create_image(PET_CENTER_X, PET_CENTER_Y, image=self.frames['idle'][0])
     
     def _load_sprite(self, pet_type, filename, fallback_to_idle=False):
@@ -78,16 +70,16 @@ class PetCharacter(tk.Canvas):
         if not frames:
             return 300
         
-        # Get timing from ANIMATION_REGISTRY
-        anim_config = ANIMATION_REGISTRY.get(self.animation_state, {})
-        frame_delay = anim_config.get('frame_delay', 200)
-        total_time = anim_config.get('total_time')
+        # Get config from unified REGISTRY
+        config = REGISTRY.get(self.animation_state, {})
+        frame_delay = config.get('frame_delay', DEFAULTS.get('frame_delay', 200))
+        total_time = config.get('total_time')
         
-        # Check for message-specific sprites
+        # Check for message-specific sprites (entries with text)
         if self.parent_window and hasattr(self.parent_window, 'current_message_id'):
             msg_id = self.parent_window.current_message_id
-            if msg_id and msg_id in self.message_frames:
-                msg_frames = self.message_frames[msg_id]
+            if msg_id and msg_id in self.frames and len(self.frames[msg_id]) > 0:
+                msg_frames = self.frames[msg_id]
                 if msg_frames and self.animation_state in ['typing', 'working', 'error']:
                     self.frame_index = (self.frame_index + 1) % len(msg_frames)
                     self.itemconfig(self.sprite, image=msg_frames[self.frame_index])
@@ -99,7 +91,7 @@ class PetCharacter(tk.Canvas):
         
         if self.animation_state == 'idle' and len(frames) > 1:
             self.frame_index = 1 - self.frame_index
-            idle_delay = anim_config.get('frame_delay', 3500)
+            idle_delay = config.get('frame_delay', 3500)
             return random.randint(idle_delay - 1500, idle_delay + 1500)
         elif self.animation_state in ['working', 'typing', 'error'] and len(frames) > 1:
             self.frame_index = (self.frame_index + 1) % len(frames)

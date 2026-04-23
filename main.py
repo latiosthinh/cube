@@ -12,7 +12,7 @@ from config import (
 from state import PetState
 from pet import PetCharacter
 from bubble import BubbleSystem
-from messages import MESSAGE_REGISTRY
+from messages import REGISTRY, DEFAULTS
 
 
 class PetWindow:
@@ -111,9 +111,8 @@ class PetWindow:
             self.pet.set_animation('error')
             self.click_count = 0
             
-            # Use total_time from error config
-            from messages import ANIMATION_REGISTRY
-            error_config = ANIMATION_REGISTRY.get('error', {})
+            # Use total_time from registry config
+            error_config = REGISTRY.get('error', {})
             duration = error_config.get('total_time', 5000)
             self.click_timer = self.root.after(duration, lambda: self.pet.set_animation('idle'))
             return
@@ -129,7 +128,7 @@ class PetWindow:
         self.state.health = min(100, self.state.health + 2)
         self.pet.set_animation('typing')
         
-        msg_ids = [k for k in MESSAGE_REGISTRY.keys() if k.startswith('msg_pet_')]
+        msg_ids = [k for k in REGISTRY.keys() if k.startswith('msg_pet_')]
         msg_id = random.choice(msg_ids)
         self.bubble.show_bubble(msg_id, on_typing_complete=lambda: self.pet.set_animation('idle'))
     
@@ -146,9 +145,8 @@ class PetWindow:
         self.pet.set_animation('working')
         self.bubble.show_bubble('msg_feed_01')
         
-        # Use total_time from animation config, default 5000ms
-        from messages import ANIMATION_REGISTRY
-        working_config = ANIMATION_REGISTRY.get('working', {})
+        # Use total_time from registry config, default 5000ms
+        working_config = REGISTRY.get('working', {})
         duration = working_config.get('total_time', 5000)
         self.click_timer = self.root.after(duration, lambda: self.pet.set_animation('idle'))
     
@@ -183,7 +181,7 @@ class PetWindow:
     def idle_chat_loop(self):
         """Show random chat during idle"""
         if self.pet.animation_state == 'idle' and not self.state.is_sleeping and not self.state.is_eating:
-            phrases = [k for k in MESSAGE_REGISTRY.keys() if k.startswith('msg_pet_')]
+            phrases = [k for k in REGISTRY.keys() if k.startswith('msg_pet_')]
             if phrases:
                 self.bubble.show_bubble(random.choice(phrases), delay=random.randint(IDLE_CHAT_DELAY_MIN, IDLE_CHAT_DELAY_MAX))
         self.root.after(random.randint(IDLE_CHAT_DELAY_MIN, IDLE_CHAT_DELAY_MAX), self.idle_chat_loop)

@@ -7,7 +7,7 @@ from config import (
     DEFAULT_DISPLAY_TIME, FONT_PATH, DEFAULT_FONT_SIZE,
     PET_WIDTH, BUBBLE_PADDING, BUBBLE_BORDER_RADIUS, BUBBLE_BORDER_COLOR, BUBBLE_BORDER_WIDTH
 )
-from messages import MESSAGE_REGISTRY, GLOBAL_DEFAULT_DISPLAY_TIME
+from messages import REGISTRY, DEFAULTS
 
 
 class BubbleSystem:
@@ -53,12 +53,12 @@ class BubbleSystem:
     
     def _show_bubble_impl(self, message_id_or_text, duration=2000, on_typing_complete=None):
         """Internal bubble display implementation"""
-        # Resolve message config
-        if message_id_or_text in MESSAGE_REGISTRY:
+        # Resolve from unified REGISTRY
+        if message_id_or_text in REGISTRY:
             msg_id = message_id_or_text
-            msg_config = MESSAGE_REGISTRY[message_id_or_text]
-            text = msg_config["text"]
-            self.display_time = msg_config.get("display_time", GLOBAL_DEFAULT_DISPLAY_TIME)
+            config = REGISTRY[message_id_or_text]
+            text = config.get("text", "")
+            self.display_time = config.get("display_time", DEFAULTS.get('display_time', duration))
         else:
             msg_id = None
             text = message_id_or_text

@@ -1,81 +1,102 @@
 {
-  "animations": {
+  "registry": {
     "idle": {
+      "text": "",
       "frames": 2,
       "frame_delay": 3500,
       "total_time": null
     },
     "typing": {
+      "text": "",
       "frames": 3,
       "frame_delay": 200,
       "total_time": null
     },
     "working": {
+      "text": "",
       "frames": 2,
       "frame_delay": 200,
       "total_time": 5000
     },
     "error": {
+      "text": "",
       "frames": 3,
       "frame_delay": 200,
       "total_time": 5000
-    }
-  },
-  "messages": {
+    },
     "msg_pet_01": {
       "text": "Hehe!",
       "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     },
     "msg_pet_02": {
       "text": "That tickles!",
       "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     },
     "msg_pet_03": {
       "text": "Again!",
       "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     },
     "msg_pet_04": {
       "text": "Wheee!",
       "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     },
     "msg_pet_05": {
       "text": "More pets!",
       "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     },
     "msg_pet_06": {
       "text": "Love it!",
       "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     },
     "msg_feed_01": {
       "text": "1 second bro!",
       "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     },
     "msg_spam_01": {
       "text": "STOP IT!",
       "frames": 3,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     },
     "msg_sleep_01": {
       "text": "Zzz...",
       "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     },
     "msg_welcome_01": {
       "text": "Hi! I'm Cube!",
       "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
       "display_time": 1500
     }
   },
   "defaults": {
     "display_time": 1500,
-    "frame_delay": 200,
-    "idle_frame_delay": 3500
+    "frame_delay": 200
   }
 }
