@@ -1,6 +1,7 @@
 """Speech bubble system with typing effect and custom font"""
 
 import tkinter as tk
+import random
 from PIL import Image, ImageTk, ImageFont, ImageDraw
 
 from config import (
@@ -53,11 +54,20 @@ class BubbleSystem:
     
     def _show_bubble_impl(self, message_id_or_text, duration=2000, on_typing_complete=None):
         """Internal bubble display implementation"""
+        # Prevent overlapping bubbles
+        if self.bubble is not None:
+            return
+        
         # Resolve from unified REGISTRY
         if message_id_or_text in REGISTRY:
             msg_id = message_id_or_text
             config = REGISTRY[message_id_or_text]
-            text = config.get("text", "")
+            text_list = config.get("text", [])
+            # Randomly select from array or use empty string
+            if isinstance(text_list, list) and text_list:
+                text = random.choice(text_list)
+            else:
+                text = text_list if text_list else ""
             self.display_time = config.get("display_time", DEFAULTS.get('display_time', duration))
         else:
             msg_id = None
@@ -125,6 +135,14 @@ class BubbleSystem:
             
             bubble_x = self.pet_x + (self.pet_width - label_width) // 2 + 30
             bubble_y = self.pet_y - label_height - 10
+            
+            # Ensure bubble stays within screen bounds
+            screen_width = self.root.winfo_screenwidth()
+            if bubble_x < 10:
+                bubble_x = 10
+            elif bubble_x + label_width > screen_width - 10:
+                bubble_x = screen_width - label_width - 10
+            
             self.bubble.geometry(f"+{bubble_x}+{bubble_y}")
             
             self.typing_timer = self.root.after(80, lambda: self._type_next_char())

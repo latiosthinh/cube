@@ -1,94 +1,73 @@
 {
   "registry": {
     "idle": {
-      "text": "",
+      "text": ["A bit sad here...", "Buddy", "Hey friend!"],
       "frames": 2,
       "frame_delay": 3500,
       "total_time": null
     },
     "typing": {
-      "text": "",
+      "text": [],
       "frames": 3,
       "frame_delay": 200,
       "total_time": null
     },
     "working": {
-      "text": "",
+      "text": ["1 second bro!", "Wait up!", "Patience!"],
       "frames": 2,
       "frame_delay": 200,
       "total_time": 5000
     },
     "error": {
-      "text": "",
+      "text": [],
       "frames": 3,
       "frame_delay": 200,
       "total_time": 5000
     },
-    "msg_pet_01": {
-      "text": "Hehe!",
+    "msg_pet": {
+      "text": ["Hehe!", "That tickles!", "Again!", "Wheee!", "More pets!", "Love it!"],
       "frames": 2,
       "frame_delay": 200,
       "total_time": null,
       "display_time": 1500
     },
-    "msg_pet_02": {
-      "text": "That tickles!",
-      "frames": 2,
-      "frame_delay": 200,
-      "total_time": null,
-      "display_time": 1500
-    },
-    "msg_pet_03": {
-      "text": "Again!",
-      "frames": 2,
-      "frame_delay": 200,
-      "total_time": null,
-      "display_time": 1500
-    },
-    "msg_pet_04": {
-      "text": "Wheee!",
-      "frames": 2,
-      "frame_delay": 200,
-      "total_time": null,
-      "display_time": 1500
-    },
-    "msg_pet_05": {
-      "text": "More pets!",
-      "frames": 2,
-      "frame_delay": 200,
-      "total_time": null,
-      "display_time": 1500
-    },
-    "msg_pet_06": {
-      "text": "Love it!",
-      "frames": 2,
-      "frame_delay": 200,
-      "total_time": null,
-      "display_time": 1500
-    },
-    "msg_feed_01": {
-      "text": "1 second bro!",
-      "frames": 2,
-      "frame_delay": 200,
-      "total_time": null,
-      "display_time": 1500
-    },
-    "msg_spam_01": {
-      "text": "STOP IT!",
+    "msg_spam": {
+      "text": ["STOP IT!", "Too much!", "My buttons!"],
       "frames": 3,
       "frame_delay": 200,
       "total_time": null,
       "display_time": 1500
     },
-    "msg_sleep_01": {
-      "text": "Zzz...",
+    "msg_sleep": {
+      "text": ["Zzz...", "So tired...", "Nap time..."],
       "frames": 2,
       "frame_delay": 200,
       "total_time": null,
       "display_time": 1500
     },
-    "msg_welcome_01": {
-      "text": "Hi! I'm Cube!",
+    "msg_welcome": {
+      "text": ["Hi! I'm Cube!", "Hello there!", "Hey friend!"],
+      "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
+      "display_time": 1500
+    },
+    "happy": {
+      "text": ["Yay! This is fun!", "Hehe, you're the best!", "My heart is full!", "Best day ever!", "You make me so happy!"],
+      "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
+      "display_time": 1500
+    },
+    "aha": {
+      "text": ["Oh! I get it now!", "Eureka! That's clever!", "Lightbulb moment!", "Genius idea!", "Now I understand!"],
+      "frames": 2,
+      "frame_delay": 200,
+      "total_time": null,
+      "display_time": 1500
+    },
+    "hungry": {
+      "text": ["Tummy rumbling...", "Snack time please!", "So hungry I could eat a byte!", "Feed me! I'm fading!", "Food? Pretty please?"],
       "frames": 2,
       "frame_delay": 200,
       "total_time": null,
