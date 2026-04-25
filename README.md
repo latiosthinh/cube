@@ -1,14 +1,15 @@
-# 🐾 Taskbar Pet - Cube Edition
+# 🐾 Taskbar Pet - DauXanh
 
-A charming desktop companion that lives in your taskbar! Meet **Cube**, your pixel-perfect pet with personality.
+A charming desktop companion that lives in your taskbar! Meet **DauXanh**, your pixel-perfect pet with personality.
 
-![Cube Pet](assets/cube/idle_0.png)
+![DauXanh Pet](assets/cube/idle_0.png)
 
 ## ✨ Features
 
-- **Always on Top** - Cube stays visible above all windows
+- **Always on Top** - DauXanh stays visible above all windows
 - **Interactive Animations** - Reacts to your clicks with unique animations
 - **Speech Bubbles** - Cute messages with typing effect using custom font
+- **Smart State Machine** - Cycles through idle, typing, happy, hungry, aha, and working modes
 - **Low Resource** - Lightweight Python + Tkinter
 - **Fully Customizable** - Edit animations, messages, and timing via JSON
 
@@ -16,10 +17,21 @@ A charming desktop companion that lives in your taskbar! Meet **Cube**, your pix
 
 | Action | Effect |
 |--------|--------|
-| **Left Click** | Pet Cube → Happy typing animation + random message |
-| **Right Click** | Feed Cube → Working animation for 5 seconds |
-| **Spam Click (3+)** | Annoyed Cube → Error mode for 5 seconds |
+| **Left Click** | Open action menu |
+| **Right Click** | Trigger random mode instantly |
+| **Alt+C** | Toggle action menu |
+| **1-5 Keys** | Select menu action |
 | **ESC** | Save & Exit |
+
+## 📋 Action Menu
+
+| # | Action | Effect |
+|---|--------|--------|
+| 1 | Pet | Triggers happy mode |
+| 2 | Feed | Feeds DauXanh, triggers happy mode, clears hungry state |
+| 3 | Think | Working mode → Aha mode after 3 seconds |
+| 4 | Show Idea List | Working mode → Shows random idea |
+| 5 | Terminate | Save & Exit |
 
 ## 🚀 Quick Start
 
@@ -57,7 +69,7 @@ Taskbar_Pet/
 ├── message_registry.json # All animations & messages config
 ├── requirements.txt     # Python dependencies
 └── assets/
-    ├── cube/            # Cube sprite frames
+    ├── cube/            # DauXanh sprite frames
     ├── font/            # CuteFont-Regular.ttf
     └── ...              # Other pet assets
 ```
@@ -72,7 +84,7 @@ Edit `message_registry.json`:
 {
   "registry": {
     "msg_custom_01": {
-      "text": "Your message here!",
+      "text": ["Message 1", "Message 2", "Message 3"],
       "frames": 2,
       "frame_delay": 200,
       "total_time": null,
@@ -125,7 +137,7 @@ All timing and behavior in `message_registry.json`:
 
 ## 💾 Auto-Save
 
-Cube automatically saves state every 30 seconds:
+DauXanh automatically saves state every 30 seconds:
 - Hunger, Happiness, Energy, Health
 - Last fed time
 - Position
@@ -139,11 +151,19 @@ Cube automatically saves state every 30 seconds:
 | **Energy** | Decreases over time |
 | **Health** | Increases when petted |
 
+## 🧠 Behavior Flow
+
+1. **Startup**: Wait 1s → Welcome message → Wait 2s → Idle mode
+2. **Idle Mode**: Random idle text every 5-10 seconds
+3. **Random State Changes**: Every 20-30 seconds picks idle/typing/happy/hungry
+4. **Hungry Persistence**: Once hungry, stays hungry until Feed action
+5. **Each Mode**: Displays for 5-8 seconds before returning to idle
+
 ## 📝 Message Registry Fields
 
 | Field | Type | Description |
 |-------|------|-------------|
-| `text` | string | Message to display (empty for base animations) |
+| `text` | array | Messages to display (randomly selected) |
 | `frames` | int | Number of sprite frames |
 | `frame_delay` | int | Milliseconds per frame |
 | `total_time` | int/null | Total animation duration (null = loop) |
@@ -151,10 +171,10 @@ Cube automatically saves state every 30 seconds:
 
 ## 🌟 Tips
 
-- Cube appears at **bottom-left** of your screen
-- Chat bubbles appear every 15-30 seconds during idle
-- Spam clicking makes Cube angry (but only for 5 seconds!)
+- DauXanh appears at **bottom-left** of your screen
+- Right-click for instant random mode changes
 - All messages use **CuteFont** (24px) for that perfect pixel look
+- Menu appears at top-right when clicking the pet
 
 ## 🤝 Contributing
 
@@ -166,10 +186,10 @@ Want to add more pets or animations? Feel free to:
 
 ## 📄 License
 
-MIT License - Do whatever you want with Cube! 🎉
+MIT License - Do whatever you want with DauXanh! 🎉
 
 ---
 
 **Made with ❤️ and Python**
 
-*Cube is waiting for you at the bottom-left corner!* 🐾
+*DauXanh is waiting for you at the bottom-left corner!* 🐾
