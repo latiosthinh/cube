@@ -1,13 +1,14 @@
 {
   "registry": {
     "idle": {
-      "text": ["A bit sad here...", "Buddy", "Hey friend!"],
+      "text": ["Hmm...", "*yawns*", "What should I do?", "Bored...", "Thinking..."],
       "frames": 2,
       "frame_delay": 3500,
-      "total_time": null
+      "total_time": null,
+      "display_time": 1500
     },
     "typing": {
-      "text": [],
+      "text": ["Busy typing...", "So much to do!", "Can't stop now!", "Almost there!"],
       "frames": 3,
       "frame_delay": 200,
       "total_time": null
@@ -46,7 +47,7 @@
       "display_time": 1500
     },
     "msg_welcome": {
-      "text": ["Hi! I'm Cube!", "Hello there!", "Hey friend!"],
+      "text": ["Hi! I'm DauXanh!", "Hello there! Me DauXanh", "Hey friend! DauXanh at your service!", "Welcome back! DauXanh here!", "Hiya! I'm your new buddy DauXanh! "],
       "frames": 2,
       "frame_delay": 200,
       "total_time": null,
